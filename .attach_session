@@ -1,0 +1,4 @@
+## script executed on session attached (for session.sh)
+
+HISTFILE="$HOME/.bash_history$TTYN"
+DIRSTACKFILE="$HOME/.dirstack$TTYN"

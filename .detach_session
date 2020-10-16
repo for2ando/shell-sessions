@@ -1,0 +1,5 @@
+## script executed on session detached (for session.sh)
+
+HISTFILE="$HOME/.bash_history"
+DIRSTACKFILE="$HOME/.dirstack"
+
