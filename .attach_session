@@ -2,3 +2,4 @@
 
 HISTFILE="$HOME/.bash_history$TTYN"
 DIRSTACKFILE="$HOME/.dirstack$TTYN"
+test "`uname -s`" = Darwin && echo -n $'\e'']6;file://localhost/bash%20'$TTYN$'\a'
