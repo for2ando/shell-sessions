@@ -18,6 +18,7 @@ DOTDIR = $(HOME)
 BASHLOGINDIR = $(HOME)/.bash_profile.d
 BASHLOGOUTDIR = $(HOME)/.bash_logout.d
 MAKECMDS = help install diff
+
 .PHONY: $(MAKECMDS)
 
 help:
@@ -28,14 +29,21 @@ _help:
 	@$(foreach i,$(MAKECMDS),echo "  make $i";)
 	@echo "See Makefile about functions of each commands."
 
-install:
-	@$(MKDIR) $(LIBDIR) && $(INSTALL) $(LIBFILES) $(LIBDIR)
-	@$(MKDIR) $(DOTDIR) && $(INSTALL) $(DOTFILES) $(DOTDIR)
-	@$(MKDIR) $(INITDIR) && $(INSTALL) $(INITFILES) $(INITDIR)
+install: install-lib install-init install-dot install-bashlogin install-bashlogout
+
+install-lib install-init install-dot::
+	$(eval dest := $(call uppercase,$(patsubst install-%,%,$@)))
+	$(eval dir := $$($(dest)DIR))
+	$(eval files := $$($(dest)FILES))
+	@$(MKDIR) $(dir) && $(INSTALL) $(files) $(dir)
+
+install-bashlogin:: 
 	@$(MKDIR) $(BASHLOGINDIR) && { \
 	  echo -n 'symlink: '; \
 	  ln -sfv $(INITDIR)/session.login $(BASHLOGINDIR)/10session.login; \
 	}
+
+install-bashlogout::
 	@$(MKDIR) $(BASHLOGOUTDIR) && { \
 	  echo -n 'symlink: '; \
 	  ln -sfv $(INITDIR)/session.logout $(BASHLOGOUTDIR)/90session.logout; \
