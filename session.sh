@@ -9,7 +9,7 @@
 ## initialize this library
 ##
 
-SESSION_D="$HOME/sessions.d"
+SESSION_D="$HOME/.sessions.d"
 export SESSION_D
 SESSIONNAMES="`seq 1 16`"
 export SESSIONNAMES
