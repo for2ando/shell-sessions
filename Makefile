@@ -13,11 +13,26 @@ LIBFILES = session.sh
 LIBDIR = $(HOME)/lib
 INITFILES = session.login session.logout
 INITDIR = $(HOME)/lib/init.d
-DOTFILES = .attach_session .detach_session
+DOTFILES = .attach_session .detach_session .session-machine_startup.sh
 DOTDIR = $(HOME)
+ifneq (, $(filter cygwin% mingw%,$(OS)))
+  STARTUPFILES = session-startup.lnk
+  STARTUPDIR := $(shell cygpath -u "$$ProgramData")/Microsoft/Windows/Start Menu/Programs/Startup
+endif
 BASHLOGINDIR = $(HOME)/.bash_profile.d
 BASHLOGOUTDIR = $(HOME)/.bash_logout.d
-MAKECMDS = help install diff
+ifneq (, $(filter cygwin% mingw%,$(OS)))
+  IMPORTFILES1 = elevate.cmd elevate.vbs
+  IMPORTDIR1 = ../elevate
+  IMPORTGIT1 = git@github.com:for2ando/elevate.git
+  IMPORTFILES2 = makeshortcut.bat
+  IMPORTDIR2 = ../makeshortcut
+  IMPORTGIT2 = https://gist.github.com/eaefad628fd3c38b72704ef857102cb1.git
+IMPORTTAG = 1 2
+else
+IMPORTTAG =
+endif
+MAKECMDS = help all clean cleanimport install diff import prepare
 
 .PHONY: $(MAKECMDS)
 
@@ -29,13 +44,33 @@ _help:
 	@$(foreach i,$(MAKECMDS),echo "  make $i";)
 	@echo "See Makefile about functions of each commands."
 
-install: install-lib install-init install-dot install-bashlogin install-bashlogout
+all: session-startup.lnk
+
+clean:
+	rm -f session-startup.lnk
+
+cleanimport:
+	rm -f $(foreach i,$(IMPORTTAG), $(IMPORTFILES$(i)))
+
+session-startup.lnk:
+	cmd /c makeshortcut.bat '$@' '$(shell cygpath -w $$(which bash))' -c '~/.session-machine_startup.sh'
+
+install:: install-lib install-init install-dot install-bashlogin install-bashlogout
+ifneq (, $(filter cygwin% mingw%,$(OS)))
+install:: install-startup
+endif
 
 install-lib install-init install-dot::
 	$(eval dest := $(call uppercase,$(patsubst install-%,%,$@)))
 	$(eval dir := $$($(dest)DIR))
 	$(eval files := $$($(dest)FILES))
 	@$(MKDIR) $(dir) && $(INSTALL) $(files) $(dir)
+
+install-startup::
+	$(eval dest := $(call uppercase,$(patsubst install-%,%,$@)))
+	$(eval dir := $$($(dest)DIR))
+	$(eval files := $$($(dest)FILES))
+	@test -d "$(dir)" && ./elevate.cmd $(INSTALL) $(files) "$(dir)" && echo $(INSTALL) $(files) "$(dir)"
 
 install-bashlogin:: 
 	@$(MKDIR) $(BASHLOGINDIR) && { \
@@ -63,3 +98,19 @@ _diff-lib _diff-init _diff-dot _diff-bashlogin _diff-bashlogout:
 	  $(DIFF) $(dir)/$f $f || true; \
 	)
 
+define IMPORTRULES
+
+import:: $$(IMPORTFILES$(1))
+prepare:: $$(IMPORTFILES$(1))
+
+$$(IMPORTFILES$(1)): $$(IMPORTDIR$(1))
+	cp -p $$(addprefix $$^/,$$@) .
+
+$$(IMPORTDIR$(1)):
+	cd $$(dir $$@) && git clone $$(IMPORTGIT$(1)) $$(notdir $$@)
+
+endef
+
+ifneq (, $(IMPORTTAG))
+$(foreach i,$(IMPORTTAG),$(eval $(call IMPORTRULES,$(i))))
+endif
