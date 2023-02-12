@@ -1,12 +1,17 @@
 ## Makefile for shell-sessions
 OS := $(shell { uname -o 2>/dev/null || uname -s; } | tr A-Z a-z)
+KERNELVER := $(shell { uname -v 2>/dev/null; } | tr A-Z a-z)
 XPAGER := $(shell which pageless || echo $${PAGER:-less})
 uppercase = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1)))))))))))))))))))))))))))
 MKDIR = install -d
+ifneq (, $(filter ish%,$(KERNELVER)))
+  INSTALL = function installv() { install -p $$1 $$2 && echo install -p $$1 $$2;} && installv
+else
 ifneq (, $(filter darwin% %bsd,$(OS)))
   INSTALL = install -pCSv
 else
   INSTALL = install -Cv
+endif
 endif
 DIFF = diff -u
 LIBFILES = session.sh
