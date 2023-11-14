@@ -2,6 +2,10 @@
 OS := $(shell { uname -o 2>/dev/null || uname -s; } | tr A-Z a-z)
 KERNELVER := $(shell { uname -v 2>/dev/null; } | tr A-Z a-z)
 XPAGER := $(shell which pageless || echo $${PAGER:-less})
+INSTALL_OPTION_p := $(shell touch t1; if install -p t1 t2 >/dev/null 2>&1; then echo p; fi; rm t[12])
+INSTALL_OPTION_C := $(shell touch t1; if install -C t1 t2 >/dev/null 2>&1; then echo C; fi; rm t[12])
+INSTALL_OPTION_S := $(shell touch t1; if install -S t1 t2 >/dev/null 2>&1; then echo S; fi; rm t[12])
+INSTALL_OPTION_v := $(shell touch t1; if install -v t1 t2 >/dev/null 2>&1; then echo v; fi; rm t[12])
 uppercase = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1)))))))))))))))))))))))))))
 MKDIR = install -d
 ifneq (, $(filter ish%,$(KERNELVER)))
@@ -10,7 +14,7 @@ else
 ifneq (, $(filter darwin% %bsd,$(OS)))
   INSTALL = install -pCSv
 else
-  INSTALL = install -Cv
+  INSTALL = install -$(INSTALL_OPTION_p)$(INSTALL_OPTION_S)$(INSTALL_OPTION_V)$(INSTALL_OPTION_v)
 endif
 endif
 DIFF = diff -u
