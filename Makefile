@@ -35,7 +35,7 @@ ifneq (, $(filter cygwin% mingw%,$(OS)))
   IMPORTDIR1 = ../elevate
   IMPORTGIT1 = git@github.com:for2ando/elevate.git
   IMPORTFILES2 = makeshortcut.bat
-  IMPORTDIR2 = ../makeshortcut
+  IMPORTDIR2 = ../makeshortcut_bat
   IMPORTGIT2 = https://gist.github.com/eaefad628fd3c38b72704ef857102cb1.git
 IMPORTTAG = 1 2
 else
