@@ -28,11 +28,11 @@ attach_session() {
   name="$1"
   TTYN=$name
   export TTYN
-  touch "$SESSION_D/$name"
-  test -r "$HOME/.attach_session" && . "$HOME/.attach_session"
+  tty >"$SESSION_D/$name"
+  test -f "$HOME/.attach_session" && test -r "$HOME/.attach_session" && . "$HOME/.attach_session"
   for script in "$HOME/.attach_session.d"/*
   do
-    test -r "$script" && . "$script"
+    test -f "$script" && test -r "$script" && . "$script"
   done
 }
 
@@ -40,29 +40,37 @@ detach_session() {
   name="$1"
   for script in "$HOME/.detach_session.d"/*
   do
-    test -r "$script" && . "$script"
+    test -f "$script" && test -r "$script" && . "$script"
   done
-  test -r "$HOME/.detach_session" && . "$HOME/.detach_session"
+  test -f "$HOME/.detach_session" && test -r "$HOME/.detach_session" && . "$HOME/.detach_session"
   rm -f "$SESSION_D/$name"
   unset TTYN
 }
 
-search_unattached_session() {
-  for name in $SESSIONNAMES
+search_attached_session() {
+  curtty=$(tty)
+  for session in "$SESSION_D"/*
   do
-    session_attached $name || {
-      echo -n $name
-      return 0
-    }
+    test $(cat "$session") = "$curtty" && echo $(basename "$session") && return 0
   done
   return 1
+}
+
+search_unattached_session() {
+  name=1
+  while session_attached $name
+  do
+    name=$(expr $name + 1)
+  done
+  echo -n $name
+  return 0
 }
 
 ## public functions
 ##
 
 login_session() {
-  name=$(search_unattached_session) || return 1
+  name=$(search_attached_session) || name=$(search_unattached_session) || return 1
   attach_session $name
 }
 

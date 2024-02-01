@@ -71,7 +71,7 @@ cleanimport:
 session-startup.lnk:
 	cmd /c makeshortcut.bat '$@' '$(shell cygpath -w $$(which bash))' -c '~/.session-machine_startup.sh'
 
-install:: install-lib install-init install-dot remove-bashlogin install-bashrc remove-bashlogout install-bashexitrc
+install:: install-lib install-init install-dot remove-bashlogin remove-bashrc install-bashrc remove-bashlogout remove-bashexitrc install-bashexitrc
 ifneq (, $(filter cygwin% mingw%,$(OS)))
 install:: install-startup
 endif
@@ -91,6 +91,9 @@ install-startup::
 remove-bashlogin::
 	rm -f $(addprefix $(BASHLOGINDIR)/,$(addsuffix session.login,$(LOGIN_PRIOLITY_LEGACY)))
 
+remove-bashrc::
+	rm -f $(addprefix $(BASHRCDIR)/,$(addsuffix session.login,$(LOGIN_PRIOLITY_LEGACY)))
+
 install-bashrc::
 	@$(MKDIR) $(BASHRCDIR) && { \
 	  echo -n 'symlink: '; \
@@ -99,6 +102,9 @@ install-bashrc::
 
 remove-bashlogout::
 	rm -f $(addprefix $(BASHLOGOUTDIR)/,$(addsuffix session.logout,$(LOGOUT_PRIOLITY_LEGACY)))
+
+remove-bashexitrc::
+	rm -f $(addprefix $(BASHEXITRCDIR)/,$(addsuffix session.logout,$(LOGOUT_PRIOLITY_LEGACY)))
 
 install-bashexitrc::
 	@$(MKDIR) $(BASHEXITRCDIR) && { \
