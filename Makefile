@@ -1,4 +1,5 @@
 ## Makefile for shell-sessions
+SHELL = bash
 OS := $(shell { uname -o 2>/dev/null || uname -s; } | tr A-Z a-z)
 XPAGER := $(shell which pageless || echo $${PAGER:-less})
 uppercase = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1)))))))))))))))))))))))))))
@@ -13,6 +14,10 @@ LIBFILES = session.sh
 LIBDIR = $(HOME)/lib
 INITFILES = session.login session.logout
 INITDIR = $(HOME)/lib/init.d
+LOGIN_PRIOLITY = 30
+LOGIN_PRIOLITY_LEGACY = 10 20 30
+LOGOUT_PRIOLITY = 70
+LOGOUT_PRIOLITY_LEGACY = 90 80 70
 DOTFILES = .attach_session .detach_session .session-machine_startup.sh
 DOTDIR = $(HOME)
 ifneq (, $(filter cygwin% mingw%,$(OS)))
@@ -21,6 +26,8 @@ ifneq (, $(filter cygwin% mingw%,$(OS)))
 endif
 BASHLOGINDIR = $(HOME)/.bash_profile.d
 BASHLOGOUTDIR = $(HOME)/.bash_logout.d
+BASHRCDIR = $(HOME)/.bashrc.d
+BASHEXITRCDIR = $(HOME)/.bashexitrc.d
 ifneq (, $(filter cygwin% mingw%,$(OS)))
   IMPORTFILES1 = elevate.cmd elevate.vbs
   IMPORTDIR1 = ../elevate
@@ -55,7 +62,7 @@ cleanimport:
 session-startup.lnk:
 	cmd /c makeshortcut.bat '$@' '$(shell cygpath -w $$(which bash))' -c '~/.session-machine_startup.sh'
 
-install:: install-lib install-init install-dot install-bashlogin install-bashlogout
+install:: install-lib install-init install-dot remove-bashlogin install-bashrc remove-bashlogout install-bashexitrc
 ifneq (, $(filter cygwin% mingw%,$(OS)))
 install:: install-startup
 endif
@@ -72,16 +79,22 @@ install-startup::
 	$(eval files := $$($(dest)FILES))
 	@test -d "$(dir)" && ./elevate.cmd $(INSTALL) $(files) "$(dir)" && echo $(INSTALL) $(files) "$(dir)"
 
-install-bashlogin:: 
-	@$(MKDIR) $(BASHLOGINDIR) && { \
+remove-bashlogin::
+	rm -f $(addprefix $(BASHLOGINDIR)/,$(addsuffix session.login,$(LOGIN_PRIOLITY_LEGACY)))
+
+install-bashrc::
+	@$(MKDIR) $(BASHRCDIR) && { \
 	  echo -n 'symlink: '; \
-	  ln -sfv $(INITDIR)/session.login $(BASHLOGINDIR)/10session.login; \
+	  ln -sfv $(INITDIR)/session.login $(BASHRCDIR)/$(LOGIN_PRIOLITY)session.login; \
 	}
 
-install-bashlogout::
-	@$(MKDIR) $(BASHLOGOUTDIR) && { \
+remove-bashlogout::
+	rm -f $(addprefix $(BASHLOGOUTDIR)/,$(addsuffix session.logout,$(LOGOUT_PRIOLITY_LEGACY)))
+
+install-bashexitrc::
+	@$(MKDIR) $(BASHEXITRCDIR) && { \
 	  echo -n 'symlink: '; \
-	  ln -sfv $(INITDIR)/session.logout $(BASHLOGOUTDIR)/90session.logout; \
+	  ln -sfv $(INITDIR)/session.logout $(BASHEXITRCDIR)/$(LOGOUT_PRIOLITY)session.logout; \
 	}
 
 diff diff-lib diff-init diff-dot diff-bashlogin diff-bashlogout:

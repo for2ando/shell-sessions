@@ -62,9 +62,7 @@ search_unattached_session() {
 ##
 
 login_session() {
-  test -z "$TTYN" && {
-    name=`search_unattached_session` || return 1
-  }
+  name=$(search_unattached_session) || return 1
   attach_session $name
 }
 
