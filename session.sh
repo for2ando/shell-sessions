@@ -51,6 +51,7 @@ search_attached_session() {
   curtty=$(tty)
   for session in "$SESSION_D"/*
   do
+    test "$session" = "$SESSION_D/*" && return 1
     test $(cat "$session") = "$curtty" && echo $(basename "$session") && return 0
   done
   return 1
